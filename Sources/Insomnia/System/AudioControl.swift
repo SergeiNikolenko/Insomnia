@@ -9,8 +9,14 @@ struct AudioOutput: Equatable, Sendable {
     var deviceUID: String
     /// nil when the name could not be read.
     var name: String?
+    /// 1 when the device has no volume control; the restore then skips it.
     var volume: Float
+    /// false when the device has no mute control.
     var muted: Bool
+    /// false when the device has neither a settable mute nor a settable
+    /// volume, such as a display's speakers over HDMI: lid close cannot
+    /// silence it and leaves it alone.
+    var canSilence: Bool = true
 }
 
 /// Volume and mute of output devices, so lid close can mute and lid open
@@ -68,18 +74,34 @@ struct CoreAudioControl: AudioControlling {
         try output(of: device(withUID: deviceUID))
     }
 
+    /// Writes only the controls the device has: one without a volume
+    /// control was muted, or silenced by nothing, and has no volume to put
+    /// back.
     func apply(volume: Float, muted: Bool, deviceUID: String?) throws {
         let device = try deviceUID.map { try self.device(withUID: $0) } ?? defaultOutputDevice()
-        var v = Float32(min(max(volume, 0), 1))
-        try set(device, Self.volumeAddress, &v, "set volume")
-        var m: UInt32 = muted ? 1 : 0
-        try set(device, Self.muteAddress, &m, "set mute")
+        if settable(device, Self.volumeAddress) {
+            var v = Float32(min(max(volume, 0), 1))
+            try set(device, Self.volumeAddress, &v, "set volume")
+        }
+        if settable(device, Self.muteAddress) {
+            var m: UInt32 = muted ? 1 : 0
+            try set(device, Self.muteAddress, &m, "set mute")
+        }
     }
 
+    /// Mutes the device, or turns its volume to 0 when it has a volume but
+    /// no mute control; the journaled volume comes back on restore.
     func mute(deviceUID: String) throws {
         let device = try device(withUID: deviceUID)
-        var m: UInt32 = 1
-        try set(device, Self.muteAddress, &m, "mute")
+        if settable(device, Self.muteAddress) {
+            var m: UInt32 = 1
+            try set(device, Self.muteAddress, &m, "mute")
+        } else if settable(device, Self.volumeAddress) {
+            var v: Float32 = 0
+            try set(device, Self.volumeAddress, &v, "set volume to 0")
+        } else {
+            throw AudioControlError(what: "mute (no volume or mute control)", status: OSStatus(kAudioHardwareUnknownPropertyError))
+        }
     }
 
     func onDevicesChanged(_ handler: @escaping @Sendable () -> Void) throws {
@@ -107,17 +129,37 @@ struct CoreAudioControl: AudioControlling {
         mElement: kAudioObjectPropertyElementMain
     )
 
+    /// Reads only the controls the device has. A display's speakers over
+    /// HDMI or DisplayPort often have neither, and reading a missing one
+    /// fails with `kAudioHardwareUnknownPropertyError`.
     private func output(of device: AudioObjectID) throws -> AudioOutput {
-        var volume: Float32 = 0
-        try get(device, Self.volumeAddress, &volume, "read volume")
+        var volume: Float32 = 1
+        if has(device, Self.volumeAddress) {
+            try get(device, Self.volumeAddress, &volume, "read volume")
+        }
         var muted: UInt32 = 0
-        try get(device, Self.muteAddress, &muted, "read mute")
+        if has(device, Self.muteAddress) {
+            try get(device, Self.muteAddress, &muted, "read mute")
+        }
         return AudioOutput(
             deviceUID: try string(kAudioDevicePropertyDeviceUID, of: device, "read device UID"),
             name: try? string(kAudioObjectPropertyName, of: device, "read device name"),
             volume: Float(volume),
-            muted: muted != 0
+            muted: muted != 0,
+            canSilence: settable(device, Self.muteAddress) || settable(device, Self.volumeAddress)
         )
+    }
+
+    private func has(_ device: AudioObjectID, _ address: AudioObjectPropertyAddress) -> Bool {
+        var addr = address
+        return AudioObjectHasProperty(device, &addr)
+    }
+
+    private func settable(_ device: AudioObjectID, _ address: AudioObjectPropertyAddress) -> Bool {
+        guard has(device, address) else { return false }
+        var addr = address
+        var isSettable: DarwinBoolean = false
+        return AudioObjectIsPropertySettable(device, &addr, &isSettable) == noErr && isSettable.boolValue
     }
 
     private func defaultOutputDevice() throws -> AudioObjectID {

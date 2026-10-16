@@ -207,6 +207,8 @@ final class LidActions {
     /// The keyboard reads 0 when suppressed by display sleep, so it takes
     /// the current read if trusted now, else the last trusted sample, else
     /// nothing, since restoring 0 would leave the backlight off for good.
+    /// For the same reason a 0 from either is not journaled: the backlight
+    /// is already off, and macOS keeps managing it.
     private func darkenSavingCurrent(_ manager: SessionManager) {
         do {
             let current = try display.readBrightness()
@@ -289,7 +291,9 @@ final class LidActions {
                 } else {
                     value = nil
                 }
-                if let value {
+                if let value, value <= 0 {
+                    Log.info("keyboard backlight already reads 0; nothing to turn off or restore, leaving it to macOS")
+                } else if let value {
                     try manager.journal { s in
                         // As for the display above.
                         if s.savedKeyboardBrightness == nil || (s.keyboardRestoreRefused && value > 0) {
@@ -334,6 +338,10 @@ final class LidActions {
     private func muteSavingCurrent(_ manager: SessionManager) {
         do {
             let current = try audio.read()
+            guard current.canSilence else {
+                Log.info("output \(current.name ?? current.deviceUID) has no volume or mute control; not muted")
+                return
+            }
             try manager.journal { s in
                 // One entry per device. A device that already has one keeps
                 // it: a previous close muted it and was never undone, so

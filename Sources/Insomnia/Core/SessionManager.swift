@@ -2299,6 +2299,24 @@ final class SessionManager {
 
     /// As restoreDisplay, for the keyboard backlight.
     private func restoreKeyboard(saved: Float, waiting: inout [String], errors: inout [String]) -> Float? {
+        // A saved 0 is no level to come back to: written through
+        // `setBrightness:forKeyboard:` it pins the backlight off, and macOS
+        // never brings it back by itself. A close no longer journals one,
+        // but an older build's journal may hold it, so the entry is cleared
+        // and the backlight left to macOS.
+        if saved <= 0 {
+            let clear: (inout RuntimeState) -> Void = { s in
+                s.savedKeyboardBrightness = nil
+                s.keyboardRestoreRefused = false
+            }
+            do {
+                try journal(clear)
+                Log.info("keyboard backlight saved as 0; not restored, left to macOS")
+            } catch {
+                errors.append(unclearedLine("keyboard backlight saved as 0 was left to macOS but the journal entry could not be cleared: \(error.localizedDescription); it will be retried", clear))
+            }
+            return nil
+        }
         if effectiveState.keyboardRestoreRefused {
             switch keptLevel(read: { try keyboard.readBrightness() },
                              untrusted: { keyboard.isSuppressedOrDimmed() ? "macOS has the backlight suppressed or dimmed" : nil }) {

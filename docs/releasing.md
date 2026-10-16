@@ -244,6 +244,13 @@ below cover what only a real Mac shows.
 - Settings floor steppers keep the end floor below the Low Power Mode floor by moving the other stepper
 - First launch over an existing install tightens Application Support/Insomnia and Logs/Insomnia to 0700 and their files to 0600
 
+### Menu bar
+
+- A session with the lid open holds the app near idle: start a session, wait
+  10 s, then sample `ps -o %cpu= -p <pid>` every 0.5 s for 20 s. The mean
+  stays under about 5%, and the countdown still changes every second. It read
+  about 46% before the countdown stopped animating its digits
+
 ### Lid close
 
 - Lid-close/open and safe recovery of explicitly selected test processes

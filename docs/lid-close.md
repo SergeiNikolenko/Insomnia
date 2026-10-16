@@ -98,11 +98,15 @@ The defaults are worth knowing:
   notification saying why: the floor cannot be applied to a level nobody can
   read. One failed read is tolerated, and the level is re-read every 30 s
   until it is readable again. A desktop has no battery and no floor. Serious
-  thermal state requests Low Power Mode; critical thermal state ends the
-  session. When one of these rules, or the timer, ends a session with the
-  lid closed, Insomnia also puts the Mac to sleep, unless macOS keeps it
-  awake closed (an external display in clamshell mode). These rules require
-  the app to be running.
+  thermal state requests Low Power Mode with the lid open; critical thermal
+  state ends the session. "End closed-lid sessions when hot" is on by default
+  and ends at serious thermal pressure, even if the other thermal rules are
+  off. Turning it off keeps the existing Low Power Mode rule. When one of
+  these rules, or the timer, ends a session with the lid closed, Insomnia
+  also puts the Mac to sleep, unless macOS keeps it awake closed (an external
+  display in clamshell mode). These rules require the app to be running. Use
+  a ventilated surface: thermal pressure is not a temperature guarantee, and
+  these rules do not make running in a backpack safe.
   Setting the end floor to 0 turns the battery end off. Otherwise the end
   floor stays below the Low Power Mode floor. The Settings steppers move the
   other floor when the two would cross, and a hand-edited `config.json` with

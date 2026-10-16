@@ -25,7 +25,7 @@ enum EndReason: String, Sendable {
     /// macOS to sleep (`SessionManager.sleepClosedLidIfOwed`).
     var sleepsAClosedLid: Bool {
         switch self {
-        case .timer, .thermalCritical, .batteryFloor, .batteryUnreadable: true
+        case .timer, .thermalCritical, .thermalSeriousClosedLid, .batteryFloor, .batteryUnreadable: true
         case .user, .quit, .backstop, .recoveryUnavailable, .startFailed: false
         }
     }

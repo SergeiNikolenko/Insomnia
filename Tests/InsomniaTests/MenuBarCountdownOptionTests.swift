@@ -33,8 +33,7 @@ final class MenuBarCountdownOptionTests: XCTestCase {
             actions: nil,
             throttledBrowsers: [],
             error: nil,
-            remaining: "2h 14m",
-            offersEnd: true
+            remaining: "2h 14m"
         )
         XCTAssertEqual(items, [
             StatusMenu.Item(title: "2h 14m remaining", kind: .info),
@@ -52,7 +51,7 @@ final class MenuBarCountdownOptionTests: XCTestCase {
     /// only; nothing is shown.
     @MainActor
     func testEndSessionIsALiveItemWithoutAKeyEquivalent() throws {
-        let items = StatusMenu.items(sessionActive: true, sleepHeld: true, machine: nil, actions: nil, throttledBrowsers: [], error: nil, offersEnd: true)
+        let items = StatusMenu.items(sessionActive: true, sleepHeld: true, machine: nil, actions: nil, throttledBrowsers: [], error: nil)
         let menu = StatusMenu.menu(
             items,
             target: nil,

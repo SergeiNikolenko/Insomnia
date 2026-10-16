@@ -60,8 +60,8 @@ enum StatusMenu {
     /// because they were not connected to get their volume back; each gets
     /// a line and an item to stop waiting for it.
     /// `remaining` is the time left, given while the menu bar countdown is
-    /// turned off and a session runs; it heads the menu. `offersEnd` adds
-    /// End Session above Settings… while a session runs.
+    /// turned off and a session runs; it heads the menu. A running session
+    /// adds End Session above Settings….
     static func items(
         sessionActive: Bool,
         sleepHeld: Bool,
@@ -75,8 +75,7 @@ enum StatusMenu {
         foreignSleep: String? = nil,
         outputsWaiting: [SavedAudioOutput] = [],
         lidSimulationBuild: Bool = false,
-        remaining: String? = nil,
-        offersEnd: Bool = false
+        remaining: String? = nil
     ) -> [Item] {
         var out: [Item] = []
         if let remaining = present(remaining) {
@@ -130,7 +129,7 @@ enum StatusMenu {
         if !out.isEmpty {
             out.append(Item(title: "", kind: .separator))
         }
-        if offersEnd {
+        if sessionActive {
             out.append(Item(title: endSessionTitle, kind: .endSession))
         }
         out.append(Item(title: settingsTitle, kind: .settings))

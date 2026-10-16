@@ -1039,8 +1039,9 @@ final class RefusedDarkeningTests: XCTestCase {
     /// read-only writes nothing, and the sampler, no longer held by the
     /// settled entries, takes the new levels. Once the journal takes writes
     /// again, the lid close clears the old entries first and journals the
-    /// levels the user chose, so the open brings back 0.2 and 0, never the
-    /// old 0.8 and 0.3.
+    /// display level the user chose; the backlight, already off, is left
+    /// alone. The open brings back 0.2 and leaves the backlight at 0, never
+    /// the old 0.8 and 0.3.
     func testACloseAfterAClearTheJournalRefusedJournalsTheLevelChosenSince() async throws {
         try seedSavedBrightness(sessionValid: false, refused: true)
         h.clamshell.closed = false
@@ -1087,7 +1088,7 @@ final class RefusedDarkeningTests: XCTestCase {
         XCTAssertEqual(h.display.sets, [])
         XCTAssertEqual(h.keyboard.sets, [])
         XCTAssertEqual(sampler.last?.display, 0.2)
-        XCTAssertEqual(sampler.last?.keyboard, 0)
+        XCTAssertNil(sampler.last?.keyboard, "a backlight turned off drops the sample")
 
         try FileManager.default.setAttributes([.immutable: false], ofItemAtPath: file)
         h.clamshell.closed = true
@@ -1095,7 +1096,7 @@ final class RefusedDarkeningTests: XCTestCase {
 
         let closed = try XCTUnwrap(try h.store.loadState())
         XCTAssertEqual(closed.savedDisplayBrightness, 0.2)
-        XCTAssertEqual(closed.savedKeyboardBrightness, 0)
+        XCTAssertNil(closed.savedKeyboardBrightness, "a backlight already off is left to macOS")
         XCTAssertFalse(closed.displayRestoreRefused)
         XCTAssertFalse(closed.keyboardRestoreRefused)
         XCTAssertTrue(logText().contains("keyboard backlight 0.3, set since its refused restore, cleared from the journal"), logText())

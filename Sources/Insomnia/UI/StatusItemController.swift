@@ -697,8 +697,7 @@ final class StatusItemController: NSObject {
             foreignSleep: manager.foreignSleepWarning,
             outputsWaiting: manager.outputsWaitingForRestore,
             lidSimulationBuild: LidSimulationBuild.isCompiledIn,
-            remaining: inMenu ? manager.remainingText : nil,
-            offersEnd: manager.isActive
+            remaining: inMenu ? manager.remainingText : nil
         )
     }
 

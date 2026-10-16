@@ -291,7 +291,10 @@ final class LidActions {
                 } else {
                     value = nil
                 }
-                if let value, value <= 0 {
+                // An earlier close that was never undone keeps its saved
+                // level (the journal step below does not overwrite it), so
+                // only a 0 with nothing saved is left alone.
+                if let value, value <= 0, manager.effectiveState.savedKeyboardBrightness == nil {
                     Log.info("keyboard backlight already reads 0; nothing to turn off or restore, leaving it to macOS")
                 } else if let value {
                     try manager.journal { s in

@@ -30,6 +30,49 @@
   <img alt="Experimental source build" src="https://img.shields.io/badge/Status-experimental-536D78?style=flat-square">
 </p>
 
+## About this fork
+
+This fork of [krishhgg/Insomnia](https://github.com/krishhgg/Insomnia) collects
+the open upstream fixes that were not merged yet, plus a few fixes for open
+issues that had no pull request. Build and install it from source (see
+[Build from source](docs/install.md#build-from-source)):
+
+```bash
+git clone https://github.com/SergeiNikolenko/Insomnia.git
+cd Insomnia
+./scripts/install.sh
+open "$HOME/Applications/Insomnia.app"
+```
+
+Merged upstream pull requests:
+
+| PR | Fixes |
+| --- | --- |
+| [#93](https://github.com/krishhgg/Insomnia/pull/93) | macOS 27: clicks on the pills (Hours, Minutes, Days) and press-and-hold on the end ring reach the control under the pointer; the ring and pills are visible on a light menu bar ([#60](https://github.com/krishhgg/Insomnia/issues/60), [#112](https://github.com/krishhgg/Insomnia/issues/112)) |
+| [#74](https://github.com/krishhgg/Insomnia/pull/74), [#84](https://github.com/krishhgg/Insomnia/pull/84) | End Session in the right-click menu whenever a session runs; an option to show only the eye |
+| [#116](https://github.com/krishhgg/Insomnia/pull/116) | A setting for which field is focused when the pills open ([#115](https://github.com/krishhgg/Insomnia/issues/115)) |
+| [#120](https://github.com/krishhgg/Insomnia/pull/120) | A session ends at its deadline even when the timer fires a few ms early ([#119](https://github.com/krishhgg/Insomnia/issues/119)) |
+| [#61](https://github.com/krishhgg/Insomnia/pull/61) | A session that ends with the lid closed puts the Mac to sleep ([#94](https://github.com/krishhgg/Insomnia/issues/94)) |
+| [#113](https://github.com/krishhgg/Insomnia/pull/113) | Closed-lid sessions end at serious thermal pressure ([#52](https://github.com/krishhgg/Insomnia/issues/52), [#55](https://github.com/krishhgg/Insomnia/issues/55)) |
+| [#102](https://github.com/krishhgg/Insomnia/pull/102) | Backstop and uninstall read macOS 27's wording for an absent defaults key ([#95](https://github.com/krishhgg/Insomnia/issues/95)) |
+| [#101](https://github.com/krishhgg/Insomnia/pull/101) | Hotspot SSIDs typed with a straight apostrophe match ([#87](https://github.com/krishhgg/Insomnia/issues/87)) |
+| [#111](https://github.com/krishhgg/Insomnia/pull/111) | The countdown digits are not animated every second |
+| [#108](https://github.com/krishhgg/Insomnia/pull/108) | The recovery agent exits early when there is nothing to undo |
+| [#68](https://github.com/krishhgg/Insomnia/pull/68) | Tmux nudges skip a pane that is back at its shell prompt |
+| [#59](https://github.com/krishhgg/Insomnia/pull/59), [#91](https://github.com/krishhgg/Insomnia/pull/91), [#98](https://github.com/krishhgg/Insomnia/pull/98), [#100](https://github.com/krishhgg/Insomnia/pull/100), [#122](https://github.com/krishhgg/Insomnia/pull/122) | Build, test and documentation fixes |
+
+Fixes made in this fork:
+
+- The keyboard backlight is never saved or restored as 0, so it no longer
+  stays off after a lid-close session; a backlight the user turned off stays
+  off ([#121](https://github.com/krishhgg/Insomnia/issues/121)).
+- Lid close mutes an output without a volume control, or turns down one
+  without a mute control, and skips one with neither with an info line
+  instead of an error ([#103](https://github.com/krishhgg/Insomnia/issues/103)).
+- A lid closed while an external display is connected counts as open: the
+  countdown keeps running and no lid-close action, Low Power Mode or
+  closed-lid sleep applies ([#97](https://github.com/krishhgg/Insomnia/issues/97)).
+
 > **Use a stable, well-ventilated surface, not a closed bag.** Insomnia is
 > experimental. Recovery can fail, and a running timer is not a safety
 > guarantee.

@@ -90,9 +90,14 @@ final class BrightnessSampler {
         }
         // A keyboard 0 is never kept as the user's level: restoring it pins
         // the backlight off, and an ambient or idle auto-off the dim check
-        // does not flag reads 0 too.
-        if !keyboardHeld(), keyboardReadIsTrusted, let value = (try? keyboard.readBrightness()) ?? nil, value > 0 {
-            taken.keyboard = value
+        // does not flag reads 0 too. It drops the earlier sample instead, so
+        // a backlight the user turned off is not brought back on open.
+        if !keyboardHeld(), keyboardReadIsTrusted, let value = (try? keyboard.readBrightness()) ?? nil {
+            if value > 0 {
+                taken.keyboard = value
+            } else {
+                last?.keyboard = nil
+            }
         }
         guard taken.display != nil || taken.keyboard != nil else { return nil }
         merge(taken)

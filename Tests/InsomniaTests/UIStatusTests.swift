@@ -1035,7 +1035,10 @@ final class UIStatusTests: XCTestCase {
         await lab.settleClose()
         XCTAssertFalse(controller.model.slotsPresent)
         XCTAssertNil(controller.model.startError, "cleared with the slots")
-        XCTAssertEqual(lab.probe.applied.count, written + 1, "one write, after the slots left")
+        // The start can confirm before the fold has settled; the running
+        // layout (countdown and end ring) is then a second write.
+        let expectedWrites = controller.model.phase == .running ? written + 2 : written + 1
+        XCTAssertEqual(lab.probe.applied.count, expectedWrites, "one write, after the slots left: \(lab.probe.applied)")
         XCTAssertEqual(lab.probe.writesWhileFolding, 0, lab.probe.foldingWrites.joined(separator: "; "))
         let confirmBy = Date().addingTimeInterval(2)
         while controller.model.phase != .running, Date() < confirmBy {
